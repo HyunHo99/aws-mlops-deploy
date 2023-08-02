@@ -52,6 +52,14 @@ Parameters:
       Type: Number
       Default: '60'
       Description: SageMakerVariantInvocationsPerInstance is the average number of times per minute that each instance for a variant is invoked
+  VariantName:
+      Description: The name of the production variant.
+      Type: String
+      Default: "Defult"
+  AutoscaleCoolDownPeriod:
+      Type: Number
+      Default: '600'
+      Description: The amount of time, in seconds, after a scaling activity completes before any further trigger-related scaling activities can start
 
 Resources:
   Model:
@@ -69,7 +77,7 @@ Resources:
           InitialVariantWeight: 1.0
           InstanceType: !Ref EndpointInstanceType
           ModelName: !GetAtt Model.ModelName
-          VariantName: AllTraffic
+          VariantName: !Ref VariantName
               
       DataCaptureConfig:
           EnableCapture: !Ref EnableDataCapture 
