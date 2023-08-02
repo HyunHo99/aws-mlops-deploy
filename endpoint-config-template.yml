@@ -81,7 +81,7 @@ Resources:
     Properties:
       MaxCapacity: 2
       MinCapacity: 1
-      ResourceId: !Sub endpoint/${Endpoint.EndpointName}/variant/${EndpointConfig.ProductionVariants.VariantName}
+      ResourceId: !Sub endpoint/${Endpoint.EndpointName}/variant/${EndpointConfig.ProductionVariants[0].VariantName}
       ScalableDimension: sagemaker:variant:DesiredInstanceCount
       ServiceNamespace: sagemaker
 
