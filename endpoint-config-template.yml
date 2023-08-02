@@ -112,6 +112,10 @@ Resources:
                   - EndpointConfigName
                 - "/variant/"
                 - Ref: VariantName
+          RoleARN:
+              Fn::GetAtt:
+              - AutoScalingPolicyRole
+              - Arn
           ScalableDimension: sagemaker:variant:DesiredInstanceCount
           ServiceNamespace: sagemaker
           
@@ -128,3 +132,44 @@ Resources:
               ScaleInCooldown: !Ref AutoscaleCoolDownPeriod
               ScaleOutCooldown: !Ref AutoscaleCoolDownPeriod
               TargetValue: !Ref SageMakerVariantInvocationsPerInstance
+              
+  AutoScalingPolicyRole:
+      Type: AWS::IAM::Role
+      Properties:
+          AssumeRolePolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+              - Effect: Allow
+                Principal:
+                  Service: sagemaker.amazonaws.com
+                Action:
+                - sts:AssumeRole
+          Policies:
+          - PolicyName: AutoscalingPolicySagemaker
+            PolicyDocument:
+                Version: '2012-10-17'
+                Statement:
+                - Effect: Allow
+                  Action:
+                  - sagemaker:DescribeEndpoint
+                  - sagemaker:DescribeEndpointConfig
+                  - sagemaker:UpdateEndpointWeightsAndCapacities
+                  Resource: "*"
+                - Action:
+                  - application-autoscaling:*
+                  Effect: Allow
+                  Resource: "*"
+                - Action: iam:CreateServiceLinkedRole
+                  Effect: Allow
+                  Resource: arn:aws:iam::*:role/aws-service-role/sagemaker.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_SageMakerEndpoint
+                  Condition:
+                    StringLike:
+                      iam:AWSServiceName: sagemaker.application-autoscaling.amazonaws.com
+                - Effect: Allow
+                  Action:
+                  - cloudwatch:PutMetricAlarm
+                  - cloudwatch:DescribeAlarms
+                  - cloudwatch:DeleteAlarms
+                  Resource: "*"
+          RoleName: 'AutoScalingPolicyRole'
+
