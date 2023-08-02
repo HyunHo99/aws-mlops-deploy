@@ -76,25 +76,25 @@ Resources:
       EndpointName: !Sub ${SageMakerProjectName}-${StageName}
       EndpointConfigName: !GetAtt EndpointConfig.EndpointConfigName
 
-  ScalingTarget:
-    Type: "AWS::ApplicationAutoScaling::ScalableTarget"
-    Properties:
-      MaxCapacity: 2
-      MinCapacity: 1
-      ResourceId: !Sub endpoint/${SageMakerProjectName}-${StageName}/variant/AllTraffic
-      ScalableDimension: sagemaker:variant:DesiredInstanceCount
-      ServiceNamespace: sagemaker
+#   ScalingTarget:
+#     Type: "AWS::ApplicationAutoScaling::ScalableTarget"
+#     Properties:
+#       MaxCapacity: 2
+#       MinCapacity: 1
+#       ResourceId: !Sub endpoint/${SageMakerProjectName}-${StageName}/variant/AllTraffic
+#       ScalableDimension: sagemaker:variant:DesiredInstanceCount
+#       ServiceNamespace: sagemaker
 
-  ScalingPolicy:
-    Type: "AWS::ApplicationAutoScaling::ScalingPolicy"
-    Properties:
-      PolicyName: myscalablepolicy
-      PolicyType: TargetTrackingScaling
-      ScalingTargetId:
-        Ref: ScalingTarget
-      TargetTrackingScalingPolicyConfiguration:
-        TargetValue: 75.0
-        ScaleInCooldown: 600
-        ScaleOutCooldown: 30
-        PredefinedMetricSpecification:
-          PredefinedMetricType: SageMakerVariantInvocationsPerInstance
+#   ScalingPolicy:
+#     Type: "AWS::ApplicationAutoScaling::ScalingPolicy"
+#     Properties:
+#       PolicyName: myscalablepolicy
+#       PolicyType: TargetTrackingScaling
+#       ScalingTargetId:
+#         Ref: ScalingTarget
+#       TargetTrackingScalingPolicyConfiguration:
+#         TargetValue: 75.0
+#         ScaleInCooldown: 600
+#         ScaleOutCooldown: 30
+#         PredefinedMetricSpecification:
+#           PredefinedMetricType: SageMakerVariantInvocationsPerInstance
