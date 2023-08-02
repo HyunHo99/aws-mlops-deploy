@@ -79,7 +79,7 @@ Resources:
   ScalingTarget:
     Type: "AWS::ApplicationAutoScaling::ScalableTarget"
     Properties:
-      MaxCapacity: 4
+      MaxCapacity: 1
       MinCapacity: 1
       ResourceId: !Sub endpoint/${Endpoint.Properties.EndpointName}/variant/${EndpointConfig.Properties.ProductionVariants.VariantName}
       ScalableDimension: sagemaker:variant:DesiredInstanceCount
