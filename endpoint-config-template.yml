@@ -40,26 +40,7 @@ Parameters:
     Default: true
     Type: String
     AllowedValues: [true, false]   
-  MinInstanceCount:
-    Description: Minimum number of instances created
-    Type: String
-    Default: '1'
-  MaxInstanceCount:
-    Description: Maximum number of instances created during autoscaling
-    Type: String
-    Default: '1'
-  SageMakerVariantInvocationsPerInstance:
-      Type: Number
-      Default: '60'
-      Description: SageMakerVariantInvocationsPerInstance is the average number of times per minute that each instance for a variant is invoked
-  VariantName:
-      Description: The name of the production variant.
-      Type: String
-      Default: "Defult"
-  AutoscaleCoolDownPeriod:
-      Type: Number
-      Default: '600'
-      Description: The amount of time, in seconds, after a scaling activity completes before any further trigger-related scaling activities can start
+
 
 Resources:
   Model:
@@ -77,8 +58,7 @@ Resources:
           InitialVariantWeight: 1.0
           InstanceType: !Ref EndpointInstanceType
           ModelName: !GetAtt Model.ModelName
-          VariantName: !Ref VariantName
-              
+          VariantName: AllTraffic
       DataCaptureConfig:
           EnableCapture: !Ref EnableDataCapture 
           InitialSamplingPercentage: !Ref SamplingPercentage
@@ -95,81 +75,3 @@ Resources:
     Properties:
       EndpointName: !Sub ${SageMakerProjectName}-${StageName}
       EndpointConfigName: !GetAtt EndpointConfig.EndpointConfigName
-
-  AutoScalingTargetSagemaker:
-      Type: AWS::ApplicationAutoScaling::ScalableTarget
-      DependsOn: Endpoint
-      Properties:
-          MaxCapacity: !Ref MaxInstanceCount
-          MinCapacity: !Ref MinInstanceCount
-          ResourceId:
-              Fn::Join:
-              - ''
-              - - endpoint
-                - "/"
-                - Fn::GetAtt:
-                  - EndpointConfig
-                  - EndpointConfigName
-                - "/variant/"
-                - Ref: VariantName
-          RoleARN:
-              Fn::GetAtt:
-              - AutoScalingPolicyRole
-              - Arn
-          ScalableDimension: sagemaker:variant:DesiredInstanceCount
-          ServiceNamespace: sagemaker
-          
-  AutoScalingPolicy:
-      Type: AWS::ApplicationAutoScaling::ScalingPolicy
-      DependsOn: AutoScalingTargetSagemaker
-      Properties:
-          PolicyName: SageMakerEndpointInvocationScalingPolicy
-          PolicyType: TargetTrackingScaling
-          ScalingTargetId: !Ref AutoScalingTargetSagemaker
-          TargetTrackingScalingPolicyConfiguration:
-              PredefinedMetricSpecification:
-                  PredefinedMetricType: SageMakerVariantInvocationsPerInstance
-              ScaleInCooldown: !Ref AutoscaleCoolDownPeriod
-              ScaleOutCooldown: !Ref AutoscaleCoolDownPeriod
-              TargetValue: !Ref SageMakerVariantInvocationsPerInstance
-              
-  AutoScalingPolicyRole:
-      Type: AWS::IAM::Role
-      Properties:
-          AssumeRolePolicyDocument:
-              Version: '2012-10-17'
-              Statement:
-              - Effect: Allow
-                Principal:
-                  Service: sagemaker.amazonaws.com
-                Action:
-                - sts:AssumeRole
-          Policies:
-          - PolicyName: AutoscalingPolicySagemaker
-            PolicyDocument:
-                Version: '2012-10-17'
-                Statement:
-                - Effect: Allow
-                  Action:
-                  - sagemaker:DescribeEndpoint
-                  - sagemaker:DescribeEndpointConfig
-                  - sagemaker:UpdateEndpointWeightsAndCapacities
-                  Resource: "*"
-                - Action:
-                  - application-autoscaling:*
-                  Effect: Allow
-                  Resource: "*"
-                - Action: iam:CreateServiceLinkedRole
-                  Effect: Allow
-                  Resource: arn:aws:iam::*:role/aws-service-role/sagemaker.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_SageMakerEndpoint
-                  Condition:
-                    StringLike:
-                      iam:AWSServiceName: sagemaker.application-autoscaling.amazonaws.com
-                - Effect: Allow
-                  Action:
-                  - cloudwatch:PutMetricAlarm
-                  - cloudwatch:DescribeAlarms
-                  - cloudwatch:DeleteAlarms
-                  Resource: "*"
-          RoleName: 'AutoScalingPolicyRole'
-
