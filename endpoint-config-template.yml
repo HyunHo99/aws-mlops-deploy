@@ -59,11 +59,11 @@ Resources:
           InstanceType: !Ref EndpointInstanceType
           ModelName: !GetAtt Model.ModelName
           VariantName: AllTraffic
-          # Add autoscaling configuration for the variant
-          AutoScalingType: "AutoScalingType"
-          # Set the desired and maximum instance counts as per your requirements
-          MinInstanceCount: 1
-          MaxInstanceCount: 4
+          # Add autoscaling configuration for the variant using VariantProperty
+          VariantProperty:
+            VariantPropertyType: DesiredInstanceCount
+            MinDesiredInstanceCount: 1
+            MaxDesiredInstanceCount: 10
           # You can adjust the scaling policies based on your needs
           # For example, using target tracking scaling policy:
           ScalingPolicy:
@@ -71,8 +71,8 @@ Resources:
               TargetValue: 80.0
               PredefinedMetricSpecification:
                 PredefinedMetricType: SageMakerVariantInvocationsPerInstance
-              ScaleInCooldown: 300
-              ScaleOutCooldown: 300
+              ScaleInCooldown: 60
+              ScaleOutCooldown: 60
               
       DataCaptureConfig:
           EnableCapture: !Ref EnableDataCapture 
