@@ -40,7 +40,18 @@ Parameters:
     Default: true
     Type: String
     AllowedValues: [true, false]   
-
+  MinInstanceCount:
+    Description: Minimum number of instances created
+    Type: String
+    Default: '1'
+  MaxInstanceCount:
+    Description: Maximum number of instances created during autoscaling
+    Type: String
+    Default: '1'
+  SageMakerVariantInvocationsPerInstance:
+      Type: Number
+      Default: '60'
+      Description: SageMakerVariantInvocationsPerInstance is the average number of times per minute that each instance for a variant is invoked
 
 Resources:
   Model:
@@ -76,3 +87,36 @@ Resources:
     Properties:
       EndpointName: !Sub ${SageMakerProjectName}-${StageName}
       EndpointConfigName: !GetAtt EndpointConfig.EndpointConfigName
+
+  AutoScalingTargetSagemaker:
+      Type: AWS::ApplicationAutoScaling::ScalableTarget
+      DependsOn: Endpoint
+      Properties:
+          MaxCapacity: !Ref MaxInstanceCount
+          MinCapacity: !Ref MinInstanceCount
+          ResourceId:
+              Fn::Join:
+              - ''
+              - - endpoint
+                - "/"
+                - Fn::GetAtt:
+                  - EndpointConfig
+                  - EndpointConfigName
+                - "/variant/"
+                - Ref: VariantName
+          ScalableDimension: sagemaker:variant:DesiredInstanceCount
+          ServiceNamespace: sagemaker
+          
+  AutoScalingPolicy:
+      Type: AWS::ApplicationAutoScaling::ScalingPolicy
+      DependsOn: AutoScalingTargetSagemaker
+      Properties:
+          PolicyName: SageMakerEndpointInvocationScalingPolicy
+          PolicyType: TargetTrackingScaling
+          ScalingTargetId: !Ref AutoScalingTargetSagemaker
+          TargetTrackingScalingPolicyConfiguration:
+              PredefinedMetricSpecification:
+                  PredefinedMetricType: SageMakerVariantInvocationsPerInstance
+              ScaleInCooldown: !Ref AutoscaleCoolDownPeriod
+              ScaleOutCooldown: !Ref AutoscaleCoolDownPeriod
+              TargetValue: !Ref SageMakerVariantInvocationsPerInstance
