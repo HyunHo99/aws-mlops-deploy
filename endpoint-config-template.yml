@@ -59,6 +59,21 @@ Resources:
           InstanceType: !Ref EndpointInstanceType
           ModelName: !GetAtt Model.ModelName
           VariantName: AllTraffic
+          # Add autoscaling configuration for the variant
+          AutoScalingType: "AutoScalingType"
+          # Set the desired and maximum instance counts as per your requirements
+          MinInstanceCount: 1
+          MaxInstanceCount: 4
+          # You can adjust the scaling policies based on your needs
+          # For example, using target tracking scaling policy:
+          ScalingPolicy:
+            TargetTrackingScalingPolicyConfiguration:
+              TargetValue: 80.0
+              PredefinedMetricSpecification:
+                PredefinedMetricType: SageMakerVariantInvocationsPerInstance
+              ScaleInCooldown: 300
+              ScaleOutCooldown: 300
+              
       DataCaptureConfig:
           EnableCapture: !Ref EnableDataCapture 
           InitialSamplingPercentage: !Ref SamplingPercentage
@@ -75,26 +90,3 @@ Resources:
     Properties:
       EndpointName: !Sub ${SageMakerProjectName}-${StageName}
       EndpointConfigName: !GetAtt EndpointConfig.EndpointConfigName
-
-  ScalingTarget:
-    Type: "AWS::ApplicationAutoScaling::ScalableTarget"
-    Properties:
-      MaxCapacity: 1
-      MinCapacity: 1
-      ResourceId: !Sub endpoint/${Endpoint.Properties.EndpointName}/variant/${EndpointConfig.Properties.ProductionVariants.VariantName}
-      ScalableDimension: sagemaker:variant:DesiredInstanceCount
-      ServiceNamespace: sagemaker
-
-  ScalingPolicy:
-    Type: "AWS::ApplicationAutoScaling::ScalingPolicy"
-    Properties:
-      PolicyName: myscalablepolicy
-      PolicyType: TargetTrackingScaling
-      ScalingTargetId:
-        Ref: ScalingTarget
-      TargetTrackingScalingPolicyConfiguration:
-        TargetValue: 75.0
-        ScaleInCooldown: 300
-        ScaleOutCooldown: 300
-        PredefinedMetricSpecification:
-          PredefinedMetricType: SageMakerVariantInvocationsPerInstance
