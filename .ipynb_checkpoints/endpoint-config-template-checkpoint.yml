@@ -44,6 +44,14 @@ Parameters:
     Description: Name of variant
     Default: Alltrafic
     Type: String
+  AutoScaleMin:
+    Description: Minimum number of instances for autoscaling
+    Default: 1
+    Type: Number
+  AutoScaleMax:
+    Description: Maximum number of instances for autoscaling
+    Default: 1
+    Type: Number
 
 
 Resources:
@@ -83,8 +91,8 @@ Resources:
   ScalingTarget:
     Type: "AWS::ApplicationAutoScaling::ScalableTarget"
     Properties:
-      MaxCapacity: 2
-      MinCapacity: 1
+      MaxCapacity: !Ref AutoScaleMax
+      MinCapacity: !Ref AutoScaleMin
       ResourceId: !Sub endpoint/${Endpoint.EndpointName}/variant/${VariantName}
       ScalableDimension: sagemaker:variant:DesiredInstanceCount
       ServiceNamespace: sagemaker
