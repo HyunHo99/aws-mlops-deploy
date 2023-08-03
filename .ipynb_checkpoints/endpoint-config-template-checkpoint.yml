@@ -40,6 +40,10 @@ Parameters:
     Default: true
     Type: String
     AllowedValues: [true, false]   
+  VariantName:
+    Description: Name of variant
+    Default: Alltrafic
+    Type: String
 
 
 Resources:
@@ -58,7 +62,7 @@ Resources:
           InitialVariantWeight: 1.0
           InstanceType: !Ref EndpointInstanceType
           ModelName: !GetAtt Model.ModelName
-          VariantName: AllTraffic
+          VariantName: !Ref VariantName
       DataCaptureConfig:
           EnableCapture: !Ref EnableDataCapture 
           InitialSamplingPercentage: !Ref SamplingPercentage
@@ -81,7 +85,7 @@ Resources:
     Properties:
       MaxCapacity: 2
       MinCapacity: 1
-      ResourceId: !Sub endpoint/${Endpoint.EndpointName}/variant/${${!Select [0, ${EndpointConfig.ProductionVariants}]}.VariantName}
+      ResourceId: !Sub endpoint/${Endpoint.EndpointName}/variant/${VariantName}
       ScalableDimension: sagemaker:variant:DesiredInstanceCount
       ServiceNamespace: sagemaker
 
