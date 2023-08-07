@@ -106,7 +106,7 @@ Resources:
         Ref: ScalingTarget
       TargetTrackingScalingPolicyConfiguration:
         TargetValue: 75.0
-        ScaleInCooldown: 600
-        ScaleOutCooldown: 30
+        ScaleInCooldown: 300
+        ScaleOutCooldown: 300
         PredefinedMetricSpecification:
           PredefinedMetricType: SageMakerVariantInvocationsPerInstance
